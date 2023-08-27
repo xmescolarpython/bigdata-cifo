@@ -1,0 +1,79 @@
+#Exemple2 Titanic
+
+data(ptitanic)
+#---------------------------------------------------------------------------
+sobrevive.model <- rpart(survived ~ ., data = ptitanic, cp = .02)
+                                        # cp = .02 for small demo tree
+# representamos el modelo
+rpart.plot(sobrevive.model,
+           main = "Supervivientes del Titanic \n (respuesta binaria)")
+
+# representamos el modelo de otra forma
+rpart.plot(sobrevive.model, type = 2, clip.right.labs = FALSE,
+           branch = .6,
+           box.palette = c( "red","green"),       # override default GnBu palette
+           main = "Supervivientes del Titanic \n")
+
+# 7.2 overfitting
+# ejemplo de division de una muestra
+# contamos el num de registro de la base de datos del titanic
+    nrow(ptitanic)
+
+# calculamos el 75%
+    num_reg_entrena<-as.integer(0.75*nrow(ptitanic))
+# Creamos una muestra aleatoria de registros de entrenamiento
+    v_titanic_train <- sample(nrow(ptitanic), num_reg_entrena)
+
+# Creamos el conjunto de registros de entrenamiento 
+    titanic_train <- ptitanic[v_titanic_train,]
+    head(titanic_train)
+
+# Creamos los datos de comprobación o test (notese el -)
+    titanic_test <- ptitanic[-v_titanic_train,]
+
+# CReamos un modelo  de suervivencia en el titanic
+
+sobrevive.model <- rpart(survived ~ ., data = titanic_train, cp = .02)
+
+# ahrora hacemos predicciones sobre el grupo de test
+titanic_test$pred <- predict(sobrevive.model,titanic_test, type = "class")
+head(titanic_test)
+
+# Examinamos los resultados con la matriz de confusion
+table(titanic_test$pred,titanic_test$survived)
+
+# Calculamos la bondad del modelo sobre el grupo de test
+100*mean(titanic_test$pred==titanic_test$survived)
+
+#7.3 Poda de los árboles
+# Ejemplo de pre-poda  en rpart
+require(rpart)
+control.poda <- rpart.control(maxdepth = 2, minsplit = 10)
+
+Titanic.model <- rpart(survived ~ .,
+                       data = titanic_train,
+                       method = "class",
+                       control = control.poda)
+
+rpart.plot(Titanic.model)
+# cambiando los parametros de poda el modelo es diferente:
+control.poda <- rpart.control(maxdepth = 4)
+Titanic.model <- rpart(survived ~ .,
+                       data = titanic_train,
+                       method = "class",
+                       control = control.poda)
+
+rpart.plot(Titanic.model)
+
+# Ejemplo de post poda
+
+# el parametro cp, controla la post poda
+# podemos ver su influencia dibujando la grafica de cp
+plotcp(Titanic.model)
+# y simplificar el modelo anterior ya calculado
+# como apreciamos a partir de cp=0.1 el modelo se simplifica mucho
+rpart.plot(prune(Titanic.model, cp = 0.10))
+
+
+
+

@@ -1,0 +1,38 @@
+# creamos los datos de ejemplo
+# una tabla con alturas del padre la madre, el sexo del hijo y la altura
+redondea5<-function(x,base=5){
+            as.integer(base*round(x/base))
+}
+
+    a.padre<- redondea5(rnorm(1000, 168, 25),10)
+    a.madre<- redondea5(rnorm(1000, 150, 10),10)
+    s.hijo<-factor(rbinom(1000,1,0.5), levels=c(0,1),labels=c("M","F"))
+    # creo data.frame
+    t.alturas<-data.frame(a.padre,a.madre,s.hijo)
+    # Se calcula la altura del hijo con esta formula
+    t.alturas$a.hijo<-ifelse(t.alturas$s.hijo == "M",
+                         (t.alturas$a.padre +t.alturas$a.madre)*rnorm(1,1,0.07)/2,
+                         (t.alturas$a.padre +t.alturas$a.madre)*rnorm(1,1,0.05)/2)
+    t.alturas$a.hijo<-redondea5(t.alturas$a.hijo,10)
+str(t.alturas) 
+
+knitr::kable(head(t.alturas,10), "markdown")
+
+# Crear un modelo de clasificacion  con rpart
+        library(rpart)
+        library(rpart.plot)
+
+# creamos un modelo de clasificación en el que intervengan todas las variables
+# el coeficiente cp nos extiende o acorta el arbol, simplifica resultados
+        model.alturas1 <- rpart(a.hijo ~ .,
+                               data = t.alturas, method = "class", cp = .02)
+    # pintamos el modelo    
+        rpart.plot(model.alturas1, fallen.leaves = FALSE,
+                   main = "Arbol de decision de alturas hijo\n(en funcion altura padres)\n",
+                   shadow.col = "gray")
+
+  # hacemos un pronostico
+        h2<-data.frame(a.padre= c(190,150),a.madre= c(180,140),s.hijo= c("M","M"))
+        predict(model.alturas1, h2,type = "class") 
+
+

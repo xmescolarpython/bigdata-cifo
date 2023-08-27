@@ -1,0 +1,160 @@
+#Librería utilizada y carga de datos
+#install.packages("dplyr") # Instalar de manipulación de dataframes "dplyr"
+#detach("package:plyr", unload=TRUE)
+
+library(dplyr) # Cargar la librería de manipulación de dataframes "dplyr"
+
+nombre <- c("A","B","C","D","E","F","G","H","I","J")
+sexo <- c(rep("man",5),rep("woman",5))
+edad <- c (25,14,25,76,12,90,65,45,56,43)
+pais <- c(rep("spain",3),rep("italy",3),rep("portugal",4))
+
+datos <- data.frame(nombre=nombre,sexo=sexo,edad=edad,pais=pais)
+head(datos)
+
+#Filtrar datos por filas
+filter(datos, sexo == "man", pais == "spain")
+
+datos[datos$sexo == "man" & datos$pais == "spain", ]
+
+#Borrar filas con valores nulos
+datos <- na.omit(datos)
+
+#Ordenar datos por filas (ascendente)
+arrange(datos, edad, nombre )
+
+#Ordenar datos por filas (descendente)
+arrange(datos, desc(edad), nombre )
+
+#Seleccionar ciertas columnas concreto
+select(datos, nombre, edad, pais)
+
+#Seleccionar un rango de columnas
+select(datos, nombre:edad)
+
+#Excluir un rango de columnas
+select(datos, -(nombre:edad))
+
+#Seleccionar ciertas columnas y renombrarlas
+select(datos, new.nombre= nombre, new.edad = edad)
+
+#Renombrar columnas de forma simple
+rename(datos, new.nombre= nombre, new.edad = edad)
+
+#Seleccionar ciertas columnas y renombrarlas
+select(datos, new.nombre= nombre, new.edad = edad)
+
+#Seleccionar y quedarse con las filas de valores no repetidos (unique)
+distinct(datos, pais)
+
+distinct(datos, sexo, pais)
+
+#Insertar nuevas columnas a las ya existentes
+mutate(datos, 
+       nacimiento = 2017 - edad
+)
+
+#Crear un nuevo dataframe con las columnas nuevas
+transmute(datos, 
+          nacimiento = 2017 - edad,
+          new.pais = paste("my county is ", pais) 
+)
+
+#Resumir la información
+summarise(datos,
+          delay = mean(edad, na.rm = TRUE)
+)
+
+
+#Agrupar datos por sexo
+grupos <- group_by(datos, sexo)
+summarise(grupos,
+          num = n()
+)
+
+#Agrupar datos por sexo determinando cuantos países hay distintos de cada grupo
+summarise(grupos,
+          paises = n_distinct(pais),
+          num = n()
+)
+
+#Agrupar por sexo y mostrar el primer país de cada grupo
+summarise(grupos,
+          pais1 = first(pais),
+          num = n()
+)
+
+#Agrupar por sexo y mostrar el último país de cada grupo
+summarise(grupos,
+          paisN = last(pais),
+          num = n()
+)
+
+#Agrupar por sexo y mostrar el N país de cada grupo
+summarise(grupos,
+          pais2 = nth(pais,2),
+          num = n()
+)
+
+#Agrupación de sentencias que manipulan datos Mediante variables
+a1 <- group_by(datos, pais)
+a2 <- select(a1, sexo:pais)
+a3 <- summarise(a2, media.edad = mean(edad, na.rm = TRUE))
+a4 <- filter(a3, media.edad > 25 & media.edad < 80)
+
+#Mediante llaves donde unas sentencias incluyan a otras
+filter(
+  summarise(
+    select(
+      group_by(datos, pais),
+      sexo:pais
+    ),
+    media.edad = mean(edad, na.rm = TRUE)
+  ),
+  media.edad > 25 & media.edad < 80
+)
+
+#Mediante el operador %>%
+datos %>%
+  group_by(pais) %>%
+  select(sexo:pais) %>%
+  summarise(media.edad = mean(edad, na.rm = TRUE)) %>%
+  filter (media.edad > 25 & media.edad < 80)
+
+#Unión de dos tablas
+id <- c (1:10)
+valor1 <- c("A","B","C","D","E","F","G","H","I","J")
+valor2 <- c(rep("spain",3),rep("italy",3),rep("portugal",4))
+
+datos1 <- data.frame(id=id,valor1= valor1)
+datos2 <- data.frame(id=id,valor2= valor2)
+head(datos1)
+head(datos2)
+
+#install.packages("nycflights13")
+library("nycflights13")
+
+join <- datos1 %>% left_join(datos2, by="id")
+head(join)
+
+#Seleccionar los n primeros valores
+nombre <- c("A","B","C","D","E","F","G","H","I","J")
+sexo <- c(rep("man",5),rep("woman",5))
+datos <- data.frame(nombre=nombre,sexo=sexo)
+
+datos %>% filter(row_number() <= 3) 
+
+#Reemplazar valores de una columna
+nombre <- c("A","B","C","D","E","F","G","H","I","J")
+valor <- c("X", 2, 3, NA, NA, NA, 3, 2, 1, 0)
+datos <- data.frame(nombre,valor)
+
+# Reemplazar NA
+datos <- datos %>% mutate(valor = replace(valor, which(is.na(valor)), 0))
+
+# Reemplazar cadenas de caracteres por nunero
+datos <- datos %>% mutate(valor = replace(valor, valor == "X", 0))
+
+# Reemplazar cadenas de caracteres por otra
+levels(datos$valor) <- c(levels(datos$valor),"Nueva")
+datos <- datos %>% mutate(valor = replace(valor, valor == "X", "Nueva"))

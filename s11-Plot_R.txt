@@ -1,0 +1,21 @@
+#Grafics pàgines 6-8-10
+
+# plot(cars)
+# hist(cars$speed)
+# boxplot(car$dist)
+
+# Pàgina 6
+line1 = c(8, 8, 14, 22)
+line2 = c(2, 12, 6, 8)
+plot(line1, type="l", col="blue")
+lines(line2, type="l", col="red")
+
+# Pàgina 8
+data <- c(10, 42, 8, 100)
+x <- c("B", "Z", "Y", "A")
+barplot(data, names.arg = x)
+
+# Pàgina 10
+x = c(8, 10, 42, 14)
+y = c("A", "B", "C", "D")
+pie(x, label=y)
